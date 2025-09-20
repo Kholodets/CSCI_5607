@@ -108,34 +108,94 @@ float areaTriangle(Point2D t1, Point2D t2, Point2D t3){
 //The result is a scalar
 //NOTE: There are some tricky cases to consider here that do not show up in the test cases!
 float pointTriangleEdgeDist(Point2D p, Point2D t1, Point2D t2, Point2D t3){
+	MultiVector s1 = MultiVector(t1).vee(t2);
+	MultiVector s2 = MultiVector(t2).vee(t3);
+	MultiVector s3 = MultiVector(t3).vee(t1);
 
-	return 0; //Wrong, fix me...
+	float min = INFINITY;
+	float d;
+
+	
+	//each vertex
+	if ((d = MultiVector(p).normalized().vee(t1).magnitude()) < min) {
+		min = d;
+	}
+
+	if ((d = MultiVector(p).normalized().vee(t2).magnitude()) < min) {
+		min = d;
+	}
+
+
+	if ((d = MultiVector(p).normalized().vee(t3).magnitude()) < min) {
+		min = d;
+	}
+
+	//each edge
+	//if the projection of p onto the edge of the triangle lies on the edge,
+	//the winding order of the two triangles between that point, the original point, and the two verticies
+	//should be opposite
+	MultiVector s1p = s1.dot(MultiVector(p)) * s1;
+	if (s1p.vee(t1).vee(p).s * s1p.vee(t2).vee(p).s < 0 && (d = MultiVector(p).normalized().vee(s1p.normalized()).magnitude()) < min) {
+		min = d;
+	}
+
+	MultiVector s2p = s2.dot(MultiVector(p)) * s2;
+	if (s2p.vee(t2).vee(p).s * s2p.vee(t3).vee(p).s < 0 && (d = MultiVector(p).normalized().vee(s2p.normalized()).magnitude()) < min) {
+		min = d;
+	}
+	
+	MultiVector s3p = s3.dot(MultiVector(p)) * s3;
+	if (s3p.vee(t3).vee(p).s * s3p.vee(t1).vee(p).s < 0 && (d = MultiVector(p).normalized().vee(s3p.normalized()).magnitude()) < min) {
+		min = d;
+	}
+
+	return min;
 }
 
 //Compute the distance from the point p to the closest of three corners of
 // the triangle t1,t2,t3
 //The result is a scalar
 float pointTriangleCornerDist(Point2D p, Point2D t1, Point2D t2, Point2D t3){
-	return 0; //Wrong, fix me...
+
+	//same as before just the verticies
+	float min = INFINITY;
+	float d;
+
+	//each vertex
+	if ((d = MultiVector(p).normalized().vee(t1).magnitude()) < min) {
+		min = d;
+	}
+
+	if ((d = MultiVector(p).normalized().vee(t2).magnitude()) < min) {
+		min = d;
+	}
+
+
+	if ((d = MultiVector(p).normalized().vee(t3).magnitude()) < min) {
+		min = d;
+	}
+
+
+	return min;
 }
 
 //Compute if the quad (p1,p2,p3,p4) is convex.
 //Your code should work for both clockwise and counterclockwise windings
 //The result is a boolean
 bool isConvex_Quad(Point2D p1, Point2D p2, Point2D p3, Point2D p4){
-	return false; //Wrong, fix me...
+	return segmentSegmentIntersect(p1,p3,p2,p4);
 }
 
 //Compute the reflection of the point p about the line l
 //The result is a point
 Point2D reflect(Point2D p, Line2D l){
-	return Point2D(0,0); //Wrong, fix me...
+	return Point2D(MultiVector(p).transform(MultiVector(l)));
 }
 
 //Compute the reflection of the line d about the line l
 //The result is a line
 Line2D reflect(Line2D d, Line2D l){
-	return Line2D(0,0,0); //Wrong, fix me...
+	return Line2D(MultiVector(d).transform(MultiVector(l)));
 }
 
 #endif
