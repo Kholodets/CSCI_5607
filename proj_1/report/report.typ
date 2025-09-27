@@ -8,6 +8,12 @@ html.elem("video", attrs: (controls: "", width: "400"))[
 caption: [Video Demonstrating the Required Features.]
 )
 
+=== Download
+
+A `tar.gz` containing the project files and a x86-64 linux executable can be found here: #html.elem("a", attrs:(href: "macle119_proj1.tar.gz"))[macle119_proj1.tar.gz]
+
+Additionally, the code may be perused at this sites parent repository: #html.elem("a", attrs:(href: "https://github.com/Kholodets/CSCI_5607/tree/main/proj_1"))[https://github.com/Kholodets/CSCI_5607/tree/main/proj_1]
+
 === Click Detection
 
 Click detection was straightfoward, I resued some code from the homework but extended it to work with squares instead of triangles.
