@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <h2>CSCI 5607 Project 1</h2>
+    <h3>Lexi MacLean</h3>
+    <figure>
+      <video controls="" width="400"><source src="required_features.webm" type="video/webm"></video>
+      <figcaption>Figure 1: Video Demonstrating the Required Features.</figcaption>
+    </figure>
+    <h4>Click Detection</h4>
+    <p>Click detection was straightfoward, I resued some code from the homework but extended it to work with squares instead of triangles. It sees whether the mouse is closer to the edge or a vertex, or absolutely close enough to either to do rotation or scaling. Then, if neither, it checks if the mouse is in the square, allowing for translation.</p>
+    <h4>Transformation</h4>
+    <p>Most of my implementation went pretty smoothly. My intuitive guess for smooth controls worked well once bugs were worked out. A couple times I mixed up some of the global variable keywords like <code>clicked_pos</code> and <code>clicked_mouse</code> which caused some strange issues including <code>NaN</code> propogation, but these were resolved simply.</p>
+    <p>The scaling works by projecting the dragged-to point onto the line made by joining the clicked point and the center of the square, and then comparing that projection's distance from the center of the square with the clicked point to obtain the scale.</p>
+    <p>The rotation works a similar way, getting the angle from the line made from the clicked point to the center and the line from the dragged point to the center. It took a bit of fiddling with signs and reversals to make sure it didn't rotate in reverse or flip around at 180 degrees.</p>
+    <p>Resetting the squares position on a keypress was as simple as duplicating the procedure from the <code>mouseDragged</code> function, but setting all of <code>rect_pos</code>, <code>rect_scale</code>, and <code>rect_angle</code> to initial values (<code>(0,0)</code>, <code>1</code>, and <code>0</code>), then updating the verticies and lines accordingly.</p>
+    <h4>Reading in PPM</h4>
+    <p>Reading in a PPM is straightforward thanks to its being a simple ASCII Format.</p>
+    <h4>Gamma Correction</h4>
+    <p>The <code>brick.ppm</code> image is stored with gamma correction applied. Gamma correction is a technique for slicing up the available colorspace in a way that appears more even to the human eye, improving banding effects etc. without needing to increase the bit depth. To correct for this, I wrote a function to undo gamma correction as the image is read in from ppm:</p>
+    <figure>
+      <pre>//...<br>#define GAMMA 2.2<br><br>int igam(int x)<br>{<br>  float v = x/255.0f;<br>  float p = pow(v, 1/GAMMA);<br>  return (int) (p*255);<br>}<br>//...<br><br>unsigned char* loadImage(int&amp; img_w, int&amp; img_h)<br>{<br>  //...<br>        for (int i = 0; i &lt; img_h; i++) {<br>                for (int j = 0; j &lt; img_w; j++) {<br>                        int red, green, blue;<br>                        ppmFile >> red >> green >> blue;<br>                        img_data[i*img_w*4 + j*4] = igam(red);<br>                        img_data[i*img_w*4 + j*4 + 1] = igam(green);i<br>                        img_data[i*img_w*4 + j*4 + 2] = igam(blue);<br>                        img_data[i*img_w*4 + j*4 + 3] = 255; // Alpha<br>                }<br>        }<br>  //...<br>}</pre>
+      <figcaption>Listing 1: Code snippets demonstrating PPM image loading and inverse gamma correction.</figcaption>
+    </figure>
+    <p>This approach solves the oddly dark appearance of <code>brick.ppm</code>:</p>
+    <figure>
+      <div><img src="brick_no_gamma.png" width="250"><img src="brick_gamma.png" width="250"></div>
+      <figcaption>Figure 2: Images showing the <code>brick.ppm</code> file displayed in my program without and with gamma correction applied (<code>GAMMA = 1.0</code> and <code>GAMMA = 2.2</code>).</figcaption>
+    </figure>
+    <p><strong>HOWEVER</strong>, the main advantage of gamma correction is to account for limitations of the encoded colorspace. Here, we're just taking it from the encoded int, reversing the correction, and then putting it back into an 8-bit integer. This negates most of the advantages of this encoding. I could supply the texture as floats which would be an improvement, however I didn't want to mess with any of the other functions when I implemented this.</p>
+  </body>
+</html>
