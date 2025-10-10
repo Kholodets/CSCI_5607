@@ -254,6 +254,60 @@ void Image::FloydSteinbergDither(int nbits){
 		}
 	}
 }
+/*
+struct Pair
+{
+	double x, y;
+	Pair (double u, double v): x(u), y(v) {}
+};
+
+typedef Pair (*Map)(Pair);
+typedef Pixel (*Filter)(Pair);
+*/
+Pair straight (Pair xy)
+{
+	return xy;
+}
+
+Pixel Image::FSample (Pair uv, Filter filter)
+{
+	
+	if (uv.x < 0 || uv.x >= Width() || uv.y < 0 || uv.y >= Height()) {
+		return Pixel(0,0,0,0);
+	}
+
+
+	float r = 0, g = 0, b = 0;
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			double x = uv.x - (double) i;
+			double y = uv.y - (double) j;
+			Pixel f, h;
+
+			f = GetPixel(i,j);
+			h = (*filter)(Pair(x,y));
+
+			r += (double) f.r * (double) h.r;
+			g += (double) f.g * (double) h.g;
+			b += (double) f.b * (double) h.b;
+		}
+	}
+
+	return Pixel(r, g, b);
+}
+
+void Image::Convolve (Image *source, Filter f, Map xyuv)
+{
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pair xy = Pair(i,j);
+			Pair uv = (*xyuv)(xy);
+			GetPixel(i, j) = (*source).FSample(uv, f);
+		}
+	}
+}
+
+			
 
 // Gaussian blur with size nxn filter
 void Image::Blur(int n){
@@ -295,6 +349,6 @@ void Image::SetSamplingMethod(int method){
 
 
 Pixel Image::Sample (double u, double v){
-   /* WORK HERE */
+   
    return Pixel();
 }

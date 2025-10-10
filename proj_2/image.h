@@ -21,7 +21,7 @@
  **/
 enum {
     IMAGE_SAMPLING_POINT,
-    IMAGE_SAMPLING_BILINEAR,
+IMAGE_SAMPLING_BILINEAR,
     IMAGE_SAMPLING_GAUSSIAN,
     IMAGE_N_SAMPLING_METHODS
 };
@@ -34,6 +34,15 @@ enum {
     IMAGE_N_CHANNELS
 };
 
+
+struct Pair
+{
+	double x,y;
+	Pair (double u, double v): x(u), y(v) {}
+};
+
+typedef Pair (*Map)(Pair);
+typedef Pixel (*Filter)(Pair);
 
 /**
  * Image
@@ -161,6 +170,12 @@ public:
     // Sample image using current sampling method.
     Pixel Sample(double u, double v);
 
+
+    
+    Pixel FSample (Pair uv, Filter f);
+    void Convolve (Image * source, Filter f, Map xyuv);
+
+    
 };
 
 #endif
