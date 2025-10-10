@@ -108,37 +108,83 @@ void Image::Brighten (double factor){
 }
 
 void Image::ExtractChannel(int channel){
-	/* WORK HERE */
+	int x,y;
+	for (x = 0 ; x < Width() ; x++){
+		for (y = 0 ; y < Height() ; y++){
+			Pixel p = GetPixel(x, y);
+			Pixel ext = Pixel((channel==0)?p.r:0,(channel==1)?p.g:0,(channel==2)?p.b:0,p.a);
+			GetPixel(x,y) = ext;
+		}
+	}
 }
 
 
 void Image::Quantize (int nbits){
-	/* WORK HERE */
+	int x,y;
+	for (x = 0; x < Width(); ++x) {
+		for (y = 0; y < Height(); ++y) {
+			Pixel p = GetPixel(x, y);
+			Pixel quant_p = PixelQuant(p, nbits);
+			GetPixel(x, y) = quant_p;
+		}
+	}
 }
 
 Image* Image::Crop(int x, int y, int w, int h){
-	/* WORK HERE */
-	return NULL;
+	Image *cropped = new Image(w, h);
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel p = GetPixel(x + i, y + j);
+			cropped->GetPixel(i,j) = p;
+		}
+	}
+	return cropped;
 }
 
 
 void Image::AddNoise (double factor){
-	/* WORK HERE */
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel p = GetPixel(i, j);
+			p.SetClamp(p.r + ((rand() % (int) (factor*255.0)) - (factor*127)),
+					p.g + ((rand() % (int) (factor*255.0)) - (factor*127)),
+					p.b + ((rand() % (int) (factor*255.0)) - (factor*127))
+					);
+			GetPixel(i,j) = p;
+		}
+	}
 }
 
 void Image::ChangeContrast (double factor){
-	/* WORK HERE */
+	//Component avg_l = Pixel(127,127,127).Luminance();
+	Pixel grey = Pixel(127, 127, 127);
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel p = GetPixel(i, j);
+			Pixel lerpd = PixelLerp(grey, p, factor);
+			GetPixel(i,j) = lerpd;
+		}
+	}
 }
 
 
 void Image::ChangeSaturation(double factor){
-	/* WORK HERE */
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel p = GetPixel(i, j);
+			int lum = (p.r*76 + p.g*150 + p.b*29) >> 8;
+			Pixel grey = Pixel(lum, lum, lum);
+			Pixel lerpd = PixelLerp(grey, p, factor);
+			GetPixel(i,j) = lerpd;
+		}
+	}
 }
 
 
 //For full credit, check that your dithers aren't making the pictures systematically brighter or darker
 void Image::RandomDither (int nbits){
-	/* WORK HERE */
+	AddNoise(0.25);
+	Quantize(nbits);
 }
 
 //This bayer method gives the quantization thresholds for an ordered dither.
@@ -165,7 +211,48 @@ const double
     DELTA = 1.0 / 16.0;
 
 void Image::FloydSteinbergDither(int nbits){
-	/* WORK HERE */
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel p = GetPixel(i,j);
+			Pixel q = PixelQuant(p, nbits);
+			Pixel err = Pixel(p.r - q.r, p.g - q.g, p.b - q.b);
+			int re = p.r - q.r;
+			int ge = p.g - q.g;
+			int be = p.b - q.b;
+			
+			int rn, gn, bn;
+			if (i < Width() - 1) {
+				Pixel a = GetPixel(i+1, j);
+				rn = ComponentClamp(a.r + (ALPHA * re));
+				gn = ComponentClamp(a.g + (ALPHA * ge));
+				bn = ComponentClamp(a.b + (ALPHA * be));
+				GetPixel(i+1, j) = Pixel(rn, gn, bn);
+			}
+			if (j < Height() - 1 && i > 0) {
+				Pixel b = GetPixel(i-1, j+1);
+				rn = ComponentClamp(b.r + (BETA * re));
+				gn = ComponentClamp(b.g + (BETA * ge));
+				bn = ComponentClamp(b.b + (BETA * be));
+				GetPixel(i-1, j+1) = Pixel(rn, gn, bn);
+			}
+			if (j < Height() - 1) {
+				Pixel c = GetPixel(i, j+1);
+				rn = ComponentClamp(c.r + (GAMMA * re));
+				gn = ComponentClamp(c.g + (GAMMA * ge));
+				bn = ComponentClamp(c.b + (GAMMA * be));
+				GetPixel(i, j+1) = Pixel(rn, gn, bn);
+			}
+			if (i < Width() - 1 && j < Height() - 1) {
+				Pixel d = GetPixel(i+1, j+1);
+				rn = ComponentClamp(d.r + (DELTA * re));
+				gn = ComponentClamp(d.g + (DELTA * ge));
+				bn = ComponentClamp(d.b + (DELTA * be));
+				GetPixel(i+1, j+1) = Pixel(rn, gn, bn);
+			}
+
+			GetPixel(i,j) = q;
+		}
+	}
 }
 
 // Gaussian blur with size nxn filter
