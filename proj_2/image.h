@@ -41,8 +41,7 @@ struct Pair
 	Pair (double u, double v): x(u), y(v) {}
 };
 
-typedef Pair (*Map)(Pair);
-typedef Pixel (*Filter)(Pair);
+typedef float (*Filter)(Pair, double);
 
 /**
  * Image
@@ -168,12 +167,16 @@ public:
     void SetSamplingMethod(int method);
 
     // Sample image using current sampling method.
-    Pixel Sample(double u, double v);
+    Pixel Sample(double u, double v, double r);
 
 
     
-    Pixel FSample (Pair uv, Filter f);
-    void Convolve (Image * source, Filter f, Map xyuv);
+    Pixel DTSample (Pair uv, float *filter, int n);
+    void DTConvolve (Image * source, float *filter, int n);
+
+
+
+
 
     
 };

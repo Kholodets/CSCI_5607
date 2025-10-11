@@ -254,6 +254,7 @@ void Image::FloydSteinbergDither(int nbits){
 		}
 	}
 }
+
 /*
 struct Pair
 {
@@ -262,77 +263,236 @@ struct Pair
 };
 
 typedef Pair (*Map)(Pair);
-typedef Pixel (*Filter)(Pair);
 */
-Pair straight (Pair xy)
-{
-	return xy;
-}
 
-Pixel Image::FSample (Pair uv, Filter filter)
+Pixel Image::DTSample (Pair uv, float *filter, int n)
 {
-	
-	if (uv.x < 0 || uv.x >= Width() || uv.y < 0 || uv.y >= Height()) {
-		return Pixel(0,0,0,0);
+	int u = (int) uv.x;
+	int v = (int) uv.y;
+
+	if (n % 2 != 1) {
+		fprintf(stderr, "incorrect usage of DTSample\n");
+		exit(1);
 	}
 
+	int s = n/2;
 
 	float r = 0, g = 0, b = 0;
-	for (int i = 0; i < Width(); ++i) {
-		for (int j = 0; j < Height(); ++j) {
-			double x = uv.x - (double) i;
-			double y = uv.y - (double) j;
-			Pixel f, h;
+	for (int i = max(-s, u-s) ; i <= min(Width()-1+s, u+s); ++i) {
+		for (int j = max(-s, v-s); j <= min(Height()-1+s, v+s); ++j) {
+			int x = s + u - i;
+			int y = s + v - j;
+			Pixel f;
+			float h = filter[y*n + x];
+			
 
-			f = GetPixel(i,j);
-			h = (*filter)(Pair(x,y));
+			int ii = i, jj = j;
+			if (ii < 0) {
+				ii = -ii % Width();
+			}
 
-			r += (double) f.r * (double) h.r;
-			g += (double) f.g * (double) h.g;
-			b += (double) f.b * (double) h.b;
+			if (ii >= Width()) {
+				ii = 2 * (Width()-1) - ii;
+			}
+			
+			if (jj < 0) {
+				jj = -jj % Height();
+			}
+
+			if (jj >= Height()) {
+				jj = 2 * (Height()-1) - jj;
+			}
+
+			f = GetPixel(ii,jj);
+			
+			float fr, fg, fb;
+			fr = f.r;
+			fg = f.g;
+			fb = f.b;
+			r += fr * h;
+			g += fg * h;
+			b += fb * h;
 		}
 	}
 
-	return Pixel(r, g, b);
+	return Pixel(abs(r), abs(g), abs(b));
 }
 
-void Image::Convolve (Image *source, Filter f, Map xyuv)
+void Image::DTConvolve (Image *source, float *filter, int n)
+{
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pair xy = Pair(i,j);
+			GetPixel(i, j) = (*source).DTSample(xy, filter, n);
+		}
+	}
+}
+
+
+
+double Gauss2(double x, double y, double a, double xsd2, double ysd2)
+{
+	return a * exp(-(((x * x)/(2*xsd2)) + (y * y)/(2*ysd2)));
+}
+
+// Gaussian blur with size nxn filter
+void Image::Blur(int n){
+
+	int d = n*2 + 1;
+	float *filter = new float[d*d];
+	Image* img_copy = new Image(*this); //This is will copying the image, so you can read the original values for filtering
+	
+	double sd = (double) d * (double) d;
+
+	float sum = 0;
+	for (int i = 0; i < d; ++i) {
+		for (int j = 0; j < d; ++j) {
+			float g = Gauss2(i-n, j-n, 1, sd, sd);
+			filter[j*d + i] = g;
+			sum += g;
+		}
+	}
+
+	for (int i = 0; i < d * d; ++i) filter[i] /= sum;
+
+
+	DTConvolve(img_copy, filter, d);
+
+	//CTConvolve(img_copy, &GSample, &straight);
+
+	delete img_copy;
+	delete[] filter;
+}
+
+void Image::Sharpen(int n){
+	Image *icopy = new Image(*this);
+
+	icopy->Blur(n);
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel a = icopy->GetPixel(i, j);
+			Pixel b = GetPixel(i,j);
+
+			Pixel c = PixelLerp(a, b, 2);
+			GetPixel(i,j) = c;
+		}
+	}
+
+	delete icopy;
+}
+
+int between(int x, int y)
+{
+	/*
+	float a = (float) x / 255.0;
+	float b = (float) y / 255.0;
+
+	float comb = sqrt(a*a + b*b);
+
+	return (int) (comb * 255);
+	*/
+	return sqrt(x*x + y*y);
+}
+
+void Image::EdgeDetect(){
+	Image *udi = new Image(*this);
+	float udf[9] = {-1.0, -2.0, -1.0,
+		0,0,0,
+		1.0, 2.0, 1.0
+	};
+
+	udi->DTConvolve(this, udf, 3);
+	
+	Image *lri = new Image(*this);
+	float lrf[9] = {-1, 0, 1.0,
+		-2.0, 0, 2.0,
+		-1.0, 0, 1.0
+	};
+
+	lri->DTConvolve(this, lrf, 3);
+
+	for (int i = 0; i < Width(); ++i) {
+		for (int j = 0; j < Height(); ++j) {
+			Pixel v = udi->GetPixel(i,j);
+			Pixel h = lri->GetPixel(i,j);
+			int r = between(v.r, h.r);
+			int g = between(v.g, h.g);
+			int b = between(v.b, h.b);
+			GetPixel(i,j) = Pixel(r,g,b);
+		}
+	}
+	delete udi;
+	delete lri;
+			
+}
+
+/*
+
+void Image::CTConvolve (Image *source, Filter f, Map xyuv)
 {
 	for (int i = 0; i < Width(); ++i) {
 		for (int j = 0; j < Height(); ++j) {
 			Pair xy = Pair(i,j);
 			Pair uv = (*xyuv)(xy);
-			GetPixel(i, j) = (*source).FSample(uv, f);
+			GetPixel(i, j) = (*source).CTSample(uv, f);
 		}
 	}
 }
+*/
 
-			
-
-// Gaussian blur with size nxn filter
-void Image::Blur(int n){
-   // float r, g, b; //You'll get better results converting everything to floats, then converting back to bytes (less quantization error)
-	// Image* img_copy = new Image(*this); //This is will copying the image, so you can read the original values for filtering
-                                          //  ... don't forget to delete the copy!
-	/* WORK HERE */
-}
-
-void Image::Sharpen(int n){
-	/* WORK HERE */
-}
-
-void Image::EdgeDetect(){
-	/* WORK HERE */
+Pair scaleMap(Pair xy, double sx, double sy)
+{
+	return Pair(xy.x / sx, xy.y / sy);
 }
 
 Image* Image::Scale(double sx, double sy){
-	/* WORK HERE */
-	return NULL;
+	int w = sx * Width();
+	int h = sy * Height();
+
+	double ascale = (abs(sx) + abs(sy)) / 2;
+
+	Image *scaled = new Image(abs(w),abs(h));
+
+	for (int i = min(0,w); i < max(0,w); ++i) {
+		for (int j = min(0,h); j < max(0,h); ++j) {
+			Pair uv = scaleMap(Pair(i,j), sx, sy);			
+			scaled->GetPixel(i-min(0,w), j-min(0,h)) = Sample(uv.x,uv.y, 1/ascale);
+		}
+	}
+	return scaled;
 }
 
-Image* Image::Rotate(double angle){
-	/* WORK HERE */
-	return NULL;
+Pair rotMap(Pair xy, double t)
+{
+	return Pair(xy.x * cos(-t) - xy.y * sin(-t), xy.x * sin(-t) + xy.y * cos(-t));
+}
+
+
+Image* Image::Rotate(double angle)
+{
+	Pair bl = Pair(0,0);
+	Pair tr = rotMap(Pair(Width(), Height()), -angle);
+	Pair tl = rotMap(Pair(0,Height()), -angle);
+	Pair br = rotMap(Pair(Width(), 0), -angle);
+
+
+	int max_x = max(max(bl.x, tr.x), max(tl.x, br.x));
+	int min_x = min(min(bl.x, tr.x), min(tl.x, br.x));
+	int max_y = max(max(bl.y, tr.y), max(tl.y, br.y));
+	int min_y = min(min(bl.y, tr.y), min(tl.y, br.y));
+	
+	int w = max_x - min_x;
+	int h = max_y - min_y;
+
+	Image *rotated = new Image(w,h);
+
+	for (int i = min_x; i < max_x; ++i) {
+		for (int j = min_y; j < max_y; ++j) {
+			Pair uv = rotMap(Pair(i,j), angle);			
+			rotated->GetPixel(i-min_x, j-min_y) = Sample(uv.x,uv.y, 1);
+		}
+	}
+	return rotated;
 }
 
 void Image::Fun(){
@@ -348,7 +508,54 @@ void Image::SetSamplingMethod(int method){
 }
 
 
-Pixel Image::Sample (double u, double v){
-   
-   return Pixel();
+float gsamp(Pair uv, double r)
+{
+	double a, sd2;
+
+	sd2 = r*r;
+	a = 0.159 / (r*r);
+	double f = Gauss2(uv.x, uv.y, a, sd2, sd2);
+	return f;
+}
+
+float lsamp(Pair uv, double r)
+{
+	if (abs(uv.x) > r || abs(uv.y) > r) return 0;
+	double v = (r-abs(uv.x)) * (r-abs(uv.y)) / ((r * r)) ;
+	return v/(r*r);
+}
+
+
+
+Pixel Image::Sample (double u, double v, double rd){
+	Filter filter;
+	switch(sampling_method)
+	{
+		case 0:
+			filter = &gsamp;
+			break;
+		case 1:
+			filter = &lsamp;
+			break;
+		case 2:
+			return GetPixel(max(0,min((int)round(u),Width()-1)), max(0,min((int)round(v),Height()-1)));
+	}
+	float r = 0, g = 0, b = 0;
+	if (rd < 1) rd = 1;
+	for (int i = max((int)u-(int)(4*rd), 0); i <= min((int)u+(int)(4*rd), Width()-1); ++i) {
+		for (int j = max((int) v-(int)(4*rd), 0); j <= min((int) v+(int)(4*rd),Height()-1); ++j) {
+			double x = u - (double) i;
+			double y = v - (double) j;
+			Pixel f;
+
+			f = GetPixel(i,j);
+			float h = (*filter)(Pair(x,y), rd);
+
+			r += (double) f.r * h;
+			g += (double) f.g * h;
+			b += (double) f.b * h;
+		}
+	}
+
+	return Pixel(r, g, b);
 }
