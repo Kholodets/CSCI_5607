@@ -132,10 +132,14 @@ void Image::Quantize (int nbits){
 
 Image* Image::Crop(int x, int y, int w, int h){
 	Image *cropped = new Image(w, h);
-	for (int i = 0; i < Width(); ++i) {
-		for (int j = 0; j < Height(); ++j) {
-			Pixel p = GetPixel(x + i, y + j);
-			cropped->GetPixel(i,j) = p;
+	for (int i = 0; i < w; ++i) {
+		for (int j = 0; j < h; ++j) {
+			if (x + i > Width() || y + j > Height()) {
+				cropped->GetPixel(i,j) = Pixel(0,0,0);
+			} else {
+				Pixel p = GetPixel(x+i, y+j);
+				cropped->GetPixel(i,j) = p;
+			}
 		}
 	}
 	return cropped;

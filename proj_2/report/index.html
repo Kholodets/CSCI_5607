@@ -5,35 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <h2>CSCI 5607 Project 1</h2>
+    <h2>CSCI 5607 Project 2</h2>
     <h3>Lexi MacLean</h3>
-    <figure>
-      <video controls="" width="400"><source src="required_features.webm" type="video/webm"></video>
-      <figcaption>Figure 1: Video Demonstrating the Required Features.</figcaption>
-    </figure>
+    <h4>Basic Effects</h4>
+    <img src="images/base.png" width="500"><img src="images/bright.png" width="500"><img src="images/contrast.png" width="500"><img src="images/saturation.png" width="500"><img src="images/blue.png" width="500"><img src="images/noise.png" width="500"><img src="images/crop.png" width="175">
+    <p>The first image is the original <code>Eagle.jpg</code>, the rest were generated using the following commands:</p>
+    <pre>./image -input samples/Eagle.jpg -brightness 1.5 -output report/images/bright.png<br>./image -input samples/Eagle.jpg -contrast 1.5 -output report/images/contrast.png<br>./image -input samples/Eagle.jpg -saturation 1.5 -output report/images/saturation.png<br>./image -input samples/Eagle.jpg -extractChannel 2 -output report/images/blue.png<br>./image -input samples/Eagle.jpg -noise 0.25 -output report/images/noise.png<br>./image -input samples/Eagle.jpg -crop 120 100 350 215 -output report/images/crop.png</pre>
+    <h4>Quantization and Dithering</h4>
+    <p>The following images show <code>Eagle.jpg</code> first, and then it quantized and dithered using the random and Floyd Steinberg methods. All are bit depth 2 to demonstrate efficacy. Generated with the following commands:</p>
+    <pre>base.png<br>./image -input samples/Eagle.jpg -quantize 2 -output report/images/quant.png<br>./image -input samples/Eagle.jpg -randomDither 2 -output report/images/dithrand.png<br>./image -input samples/Eagle.jpg -FloydSteinbergDither 2 -output report/images/floyd.png</pre>
+    <img src="images/base.png" width="600"><img src="images/quant.png" width="600"><img src="images/dithrand.png" width="600"><img src="images/floyd.png" width="600">
+    <p>The Floyd steinberg image has some slight change in texture with some regular patterns, but clearly has less error. It's almost indistinguishable from the original image at smaller scales.</p>
+    <h4>DT Kernel Convolutions</h4>
+    <p>Blurring takes a Gaussian kernel and convolves it in discrete time over the image. Sharpening extrapolates beyond the interpolation from that blurred image to the original image to produce an "unblurred" version:</p>
+    <pre>base.png<br>./image -input samples/Eagle.jpg -blur 10 -output report/images/blur.png<br>./image -input samples/Eagle.jpg -sharpen 10 -output report/images/sharp.png</pre>
+    <img src="images/base.png" width="500"><img src="images/blur.png" width="500"><img src="images/sharp.png" width="500">
+    <p>Edge detection also uses a DT Kernel Convolution. I implemented the Sobel operator, which makes a pass with a vertical edge detection kernel and another with horizontal, then puts the results together.</p>
+    <pre>        Image *udi = new Image(*this);<br>  float udf[9] = {-1.0, -2.0, -1.0,<br>    0,0,0,<br>    1.0, 2.0, 1.0<br>  };<br><br>  udi->DTConvolve(this, udf, 3);<br>  <br>  Image *lri = new Image(*this);<br>  float lrf[9] = {-1, 0, 1.0,<br>    -2.0, 0, 2.0,<br>    -1.0, 0, 1.0<br>  };<br><br>  lri->DTConvolve(this, lrf, 3);</pre>
+    <p>Image generated with:</p>
+    <pre>./image -input samples/Eagle.jpg -edgeDetect -output report/images/edge.png</pre>
+    <img src="images/edge.png" width="500">
+    <h4>Sampling, Scaling, Rotating</h4>
+    <p>Here are the basic examples of scaling and rotating, but I'll give some more as I go into the sampling methods:</p>
+    <pre>./image -input samples/Eagle.jpg -scale 2 2 -output report/images/upscale.png<br>./image -input samples/Eagle.jpg -scale 0.25 0.25 -output report/images/downscale.png<br>./image -input samples/Eagle.jpg -rotate -1 -output report/images/rot.png</pre>
+    <img src="images/upscale.png" width="1000"><img src="images/downscale.png" width="200"><img src="images/rot.png" width="500">
+    <p><strong>Sampling Methods</strong></p>
+    <p>I implemented nearest neighbor, bilinear, and gaussian sampling. Here's all three of them used for downsampling:</p>
+    <pre>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 2 -scale 0.25 0.25 -output report/images/nearestdown.png<br>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 1 -scale 0.25 0.25 -output report/images/bildown.png<br>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 0 -scale 0.25 0.25 -output report/images/gaussdown.png</pre>
+    <img src="images/nearestdown.png" width="500"><img src="images/bildown.png" width="500"><img src="images/gaussdown.png" width="500">
+    <p>Then, here each of them are for upsampling:</p>
+    <pre>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 2 -scale 4 4 -output report/images/nearestup.png<br>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 1 -scale 4 4 -output report/images/bilup.png<br>./image -input samples/Eagle.jpg -crop 220 250 80 80 -sampling 0 -scale 4 4 -output report/images/gaussup.png</pre>
+    <img src="images/nearestup.png" width="500"><img src="images/bilup.png" width="500"><img src="images/gaussup.png" width="500">
+    <p>In both upsampling and downsampling, nearest neighbor produces some pretty bad aliasing in the form of jaggies. Gaussian is very smooth, but because I used a function without any negatives, it loses a bit of high frequency detail and gets a little blurry. Also, because of the way we were asked to use a continuous gaussian for the sampling, its also SLOW. I'm sure there are some optimizations I could make, but it takes on the order of seconds to process the transformations. The bilinear provides a nice middle ground, without nearly as bad aliasing as nearest neighbor (especially on upsampling), but faster and with less blurring than Gaussian.</p>
+    <p>Were I to continue working on this, I'd probably try to develop sampling which had the lack of aliasing of the Gaussian, but had sharpening built into the curve and was better optimized.</p>
+    <p>Tweaking these sampling methods was probably the most time consuming and tedious part, trying to avoid substantially brightening/darkening the image, getting the radius right for different sampling cases, not having strange subsample patterns, etc. I'm happy with how they turned out for the most part.</p>
+    <p>I really like how the floyd dithering looks, one of the cooler parts I think. Going the extra step for sobel edge detection was also nice.</p>
     <h4>Download</h4>
-    <p>A <code>tar.gz</code> containing the project files and a x86-64 linux executable can be found here: <a href="macle119_proj1.tar.gz">macle119_proj1.tar.gz</a></p>
-    <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_1"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_1">https://github.com/Kholodets/CSCI_5607/tree/main/proj_1</a></a></p>
-    <h4>Click Detection</h4>
-    <p>Click detection was straightfoward, I resued some code from the homework but extended it to work with squares instead of triangles. It sees whether the mouse is closer to the edge or a vertex, or absolutely close enough to either to do rotation or scaling. Then, if neither, it checks if the mouse is in the square, allowing for translation.</p>
-    <h4>Transformation</h4>
-    <p>Most of my implementation went pretty smoothly. My intuitive guess for smooth controls worked well once bugs were worked out. A couple times I mixed up some of the global variable keywords like <code>clicked_pos</code> and <code>clicked_mouse</code> which caused some strange issues including <code>NaN</code> propogation, but these were resolved simply.</p>
-    <p>The scaling works by projecting the dragged-to point onto the line made by joining the clicked point and the center of the square, and then comparing that projection's distance from the center of the square with the clicked point to obtain the scale.</p>
-    <p>The rotation works a similar way, getting the angle from the line made from the clicked point to the center and the line from the dragged point to the center. It took a bit of fiddling with signs and reversals to make sure it didn't rotate in reverse or flip around at 180 degrees.</p>
-    <p>Resetting the squares position on a keypress was as simple as duplicating the procedure from the <code>mouseDragged</code> function, but setting all of <code>rect_pos</code>, <code>rect_scale</code>, and <code>rect_angle</code> to initial values (<code>(0,0)</code>, <code>1</code>, and <code>0</code>), then updating the verticies and lines accordingly.</p>
-    <h4>Reading in PPM</h4>
-    <p>Reading in a PPM is straightforward thanks to its being a simple ASCII Format.</p>
-    <h4>Gamma Correction</h4>
-    <p>The <code>brick.ppm</code> image is stored with gamma correction applied. Gamma correction is a technique for slicing up the available colorspace in a way that appears more even to the human eye, improving banding effects etc. without needing to increase the bit depth. To correct for this, I wrote a function to undo gamma correction as the image is read in from ppm:</p>
-    <figure>
-      <pre>//...<br>#define GAMMA 2.2<br><br>int igam(int x)<br>{<br>  float v = x/255.0f;<br>  float p = pow(v, 1/GAMMA);<br>  return (int) (p*255);<br>}<br>//...<br><br>unsigned char* loadImage(int&amp; img_w, int&amp; img_h)<br>{<br>  //...<br>        for (int i = 0; i &lt; img_h; i++) {<br>                for (int j = 0; j &lt; img_w; j++) {<br>                        int red, green, blue;<br>                        ppmFile >> red >> green >> blue;<br>                        img_data[i*img_w*4 + j*4] = igam(red);<br>                        img_data[i*img_w*4 + j*4 + 1] = igam(green);i<br>                        img_data[i*img_w*4 + j*4 + 2] = igam(blue);<br>                        img_data[i*img_w*4 + j*4 + 3] = 255; // Alpha<br>                }<br>        }<br>  //...<br>}</pre>
-      <figcaption>Listing 1: Code snippets demonstrating PPM image loading and inverse gamma correction.</figcaption>
-    </figure>
-    <p>This approach solves the oddly dark appearance of <code>brick.ppm</code>:</p>
-    <figure>
-      <div><img src="brick_no_gamma.png" width="250"><img src="brick_gamma.png" width="250"></div>
-      <figcaption>Figure 2: Images showing the <code>brick.ppm</code> file displayed in my program without and with gamma correction applied (<code>GAMMA = 1.0</code> and <code>GAMMA = 2.2</code>).</figcaption>
-    </figure>
-    <p><strong>HOWEVER</strong>, the main advantage of gamma correction is to account for limitations of the encoded colorspace. Here, we're just taking it from the encoded int, reversing the correction, and then putting it back into an 8-bit integer. This negates most of the advantages of this encoding. I could supply the texture as floats which would be an improvement, however I didn't want to mess with any of the other functions when I implemented this.</p>
+    <p><strong>NOTE</strong> I modified <code>image.h</code> to extend the functionality of the schematic for sampling, using the modified version is necessary to compile with my version of <code>image.cpp</code>. Here are links to these files: <a href="image.cpp">image.cpp</a> <a href="image.h">image.h</a></p>
+    <p>A <code>tar.gz</code> containing the project files and a x86-64 linux executable can be found here: <a href="macle119_proj2.tar.gz">macle119_proj1.tar.gz</a></p>
+    <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_2"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_2">https://github.com/Kholodets/CSCI_5607/tree/main/proj_2</a></a></p>
   </body>
 </html>
