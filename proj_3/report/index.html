@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <h2>CSCI 5607 Project 3A</h2>
+    <h3>Lexi MacLean</h3>
+    <h3>Scene Setup</h3>
+    <p>My ray tracer supports user specified <strong>camera placement, image resolution(aspect ratio), background color, and PNG output images</strong>.</p>
+    <p>The following images are rendered using the normal of the hit location as the color, this visualization is useful to see what scene geometry is doing if other shading methods are absent or inadequate.</p>
+    <p>Rendered with setup files (and with the early return from shading funciton for the normal):</p>
+    <pre>#####################################<br>camera_pos: 0 0 4<br>camera_fwd: 0 0 1<br>camera_up: 0 1 0<br>camera_fov_ha: 15<br>output_image: setup1.png<br>film_resolution: 1000 1000<br>material: 1 1 1 1 1 1 0 0 0 5 0 0 0 1<br>sphere: 0 0 0 1<br>background: 0 0 1<br>#####################################</pre>
+    <pre>#####################################<br>camera_pos: 0 4 0<br>camera_fwd: 0 1 0<br>camera_up: 0 0 -1<br>camera_fov_ha: 45<br>output_image: setup2.png<br>film_resolution: 1000 1000<br>material: 1 1 1 1 1 1 0 0 0 5 0 0 0 1<br>sphere: 0 0 0 1<br>ambient_light: .1 .1 .1<br>background: 0 0 1<br>#####################################</pre>
+    <img src="images/setup1.png" width="500"><img src="images/setup2.png" width="500">
+    <p>The change in the color gradient over the rendered circle shows that the camera is viewing it from a different angle. The change in size of the cirlce between the two images despite being the same distance away shows that the field of view is wider in the latter.</p>
+    <h3>Spheres, Lights, Shadows, Reflection</h3>
+    <p>My ray tracer supports <strong>basic sampling, ambient light, multiple point light sources, sphere primitives, hard shadows, diffuse and specular color, and reflection.</strong></p>
+    <p>Here is an image of a scene featuring three spheres with diffuse and specular qualities, demonstrating shadows with multiple lights, reflections, lambertial diffuse surfaces, and phong specular surfaces:</p>
+    <pre>###########################################################<br>camera_pos: 0 1 4<br>camera_fwd: 0 0 1<br>camera_up 0 1 0<br>camera_fov_ha: 45<br>output_image: lighting.png<br>ambient_light .25 .25 .25<br>film_resolution: 1600 900<br>background: .05 .05 .05<br><br>#ground<br>material: .75 .75 .75 .75 .75 .75 .3 .3 .3 32 .2 .2 .2 1.5<br>sphere: 0 -100 0 100<br><br>#red sphere:<br>material: 1 0 0 1 0 0 .3 .3 .3 5 0 0 0 1.5<br>sphere: -2.5 1 0 .75<br><br>#blue sphere:<br>material: 0 0 1 0 0 1 .3 .3 .3 5 0 0 0 1.5<br>sphere: 2.5 1 0 .75<br><br>point_light: 70 70 70 10 7 7<br>point_light: 70 70 70 -10 7 7<br>###########################################################</pre>
+    <img src="images/lighting.png" width="1000">
+    <h3>Example Scenes</h3>
+    <p>Here are my ray tracers renders of the two example scenes provided:</p>
+    <img src="images/spheres1.png" width="700"><img src="images/spheres2.png" width="700">
+    <p>Notably absent from these renders are refractive properties. This is one of the main features I still need to add, but is omitted in this submission. The first example scene clearly displays <strong>ambient light</strong> on each of the spheres.</p>
+    <h3>Project experience and moving forward</h3>
+    <p>Working on this ray tracer has been fun. I used a lot of the code from HW3 to get going. Due to being pressed for time, I was between using the provided code here or reimplementing the lighting model in a stochastic path tracer I wrote in rust a few years ago. I decided to go with the C++ homework code so I didn't have to relearn rust and re-write the parser, and to stick with C++ for this class's work.</p>
+    <p>I didn't run into too much trouble during the development of it, some features required a bit of messing with PGA expressions to get working, but nothing too bad. The main issue with the raytracer right now is speed. It currently implements no acceleration structure, and takes quite a while to render. It also has no antialiasing, so the jaggies are pretty bad. Adding antialiasing would make it unacceptably slow, so an acceleration structure is high priority.</p>
+    <p>By my count, I've implemented 11 of the 5-point features: <code>(cam placement, film res, aspect ratio), background colors, png output, spheres, ambient lights, point light sources, shadows, multiple light sources, basic sampling, color/specularity, and reflection</code>. Since, I'm turning this in a day late, I'm just shooting for full points.</p>
+    <h3>Download</h3>
+    <p>A <code>tar.gz</code> containing the project files and a x86-64 linux executable can be found here: <a href="macle119_proj3.tar.gz">macle119_proj3.tar.gz</a></p>
+    <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3">https://github.com/Kholodets/CSCI_5607/tree/main/proj_3</a></a></p>
+  </body>
+</html>

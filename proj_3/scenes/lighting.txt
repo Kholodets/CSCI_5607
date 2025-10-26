@@ -1,0 +1,25 @@
+###########################################################
+camera_pos: 0 1 4
+camera_fwd: 0 0 1
+camera_up 0 1 0
+camera_fov_ha: 45
+output_image: lighting.png
+ambient_light .25 .25 .25
+film_resolution: 1600 900
+background: .05 .05 .05
+
+#ground
+material: .75 .75 .75 .75 .75 .75 .3 .3 .3 32 .2 .2 .2 1.5
+sphere: 0 -100 0 100
+
+#red sphere:
+material: 1 0 0 1 0 0 .3 .3 .3 5 0 0 0 1.5
+sphere: -2.5 1 0 .75
+
+#blue sphere:
+material: 0 0 1 0 0 1 .3 .3 .3 5 0 0 0 1.5
+sphere: 2.5 1 0 .75
+
+point_light: 70 70 70 10 7 7
+point_light: 70 70 70 -10 7 7
+###########################################################
