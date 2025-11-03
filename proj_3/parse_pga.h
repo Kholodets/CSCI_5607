@@ -35,8 +35,10 @@ Dir3D right = Dir3D(-1,0,0).normalized();
 float halfAngleVFOV = 35; 
 
 //Scene (Sphere) Parameters
-std::vector<Sphere> spheres;
-std::vector<PointLight> lights;
+std::vector<Hittable *> hits;
+std::vector<Light *> lights;
+std::vector<Point3D> verts;
+std::vector<Dir3D> norms;
 
 Point3D spherePos = Point3D(0,0,2);
 float sphereRadius = 1;
@@ -63,13 +65,52 @@ void parseSceneFile(std::string fileName){
 			if (!cmd.compare("sphere:")) {
 				float x, y, z, r;
 				if (line >> x >> y >> z >> r) {
-					Sphere ns = Sphere(Point3D(x,y,z), r, mat);
-					spheres.push_back(ns);
+					Sphere *ns = new Sphere(Point3D(x,y,z), r, mat);
+					hits.push_back(ns);
 				} else {
 					printf("malformed command in scene file\n");
 				}
 			}
-				
+			
+			if (!cmd.compare("vertex:")) {
+				float x, y, z;
+				if (line >> x >> y >> z) {
+					verts.push_back(Point3D(x,y,z));
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+
+			if (!cmd.compare("normal:")) {
+				float x, y, z;
+				if (line >> x >> y >> z) {
+					norms.push_back(Dir3D(x,y,z));
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+
+			if (!cmd.compare("triangle:")) {
+				int v1, v2, v3;
+				if (line >> v1 >> v2 >> v3) {
+					Tri *t = new Tri(verts[v1], verts[v2], verts[v3], mat);
+					hits.push_back(t);
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+
+			if (!cmd.compare("normal_triangle:")) {
+				int v1, v2, v3, n1, n2, n3;
+				if (line >> v1 >> v2 >> v3 >> n1 >> n2 >> n3) {
+					Tri *t = new Tri(verts[v1], verts[v2], verts[v3], norms[n1], norms[n2], norms[n3], mat);
+					hits.push_back(t);
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+			
+
 			if (!cmd.compare("max_depth:")) {
 				int n;
 				if (line >> n) {
@@ -83,12 +124,37 @@ void parseSceneFile(std::string fileName){
 			if (!cmd.compare("point_light:")) {
 				float r, g, b, x, y, z;
 				if (line >> r >> g >> b >> x >> y >> z) {
-					PointLight l = PointLight(Color(r,g,b), Point3D(x,y,z));
+					PointLight *l = new PointLight(Color(r,g,b), Point3D(x,y,z));
 					lights.push_back(l);
 				} else {
 					printf("malformed command in scene file\n");
 				}
 			}
+
+			if (!cmd.compare("directional_light:")) {
+				float r, g, b, x, y, z;
+				if (line >> r >> g >> b >> x >> y >> z) {
+					DirLight *l = new DirLight(Color(r,g,b), Dir3D(x,y,z));
+					lights.push_back(l);
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+			
+			if (!cmd.compare("spot_light:")) {
+				float r, g, b, px, py, pz, dx, dy, dz, a1, a2;
+				if (line >> r >> g >> b >>
+						px >> py >> pz >>
+						dx >> dy >> dz >> 
+						a1 >> a2
+						) {
+					SpotLight *l = new SpotLight(Color(r,g,b), Point3D(px,py,pz), Dir3D(dx,dy,dz), a1, a2);
+					lights.push_back(l);
+				} else {
+					printf("malformed command in scene file\n");
+				}
+			}
+			
 
 			if (!cmd.compare("material:")) {
 				float ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior;

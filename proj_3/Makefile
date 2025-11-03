@@ -1,5 +1,5 @@
 ray: rayTrace_pga.cpp hit.h parse_pga.h
-	g++ -fsanitize=address -std=c++14 rayTrace_pga.cpp -o ray
+	g++ -fsanitize=address -std=c++14 -fopenmp -O3 rayTrace_pga.cpp -o ray
 
 spheres1: ray
 	./ray SphereExamples/spheres1.txt

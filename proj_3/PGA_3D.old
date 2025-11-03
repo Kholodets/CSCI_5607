@@ -59,8 +59,6 @@ struct Plane3D{
     return Plane3D(x/mag, y/mag, z/mag, w/mag);
   }
 
-  Dir3D normal();
-
   operator std::string() const {
     char result[150];
     snprintf(result, 150, "Plane %.2fx+%.2fy+%.2fz+%f=0",x,y,z,w);
@@ -152,7 +150,7 @@ struct Line3D{
 //Points and Displacements
 //-------------------
 struct Point3D{
-  double x,y,z; //TODO: Extra precision helps improve rendering, but slows down performance
+  float x,y,z;
 
   Point3D(float x=0, float y=0, float z=0): x(x), y(y), z(z) {}
 
@@ -382,11 +380,6 @@ inline Line3D IdealLine3D::dual(){
   return Line3D(x, y, z, 0, 0, 0);
 }
 
-//Operations on Planes
-inline Dir3D Plane3D::normal(){
-    return Dir3D(x, y, z);
-}
-
 
 //Wedge/Meet Operations
 inline Line3D wedge(Point3D lhs, Point3D rhs){
@@ -449,7 +442,7 @@ inline MultiVector operator*(Line3D l,Plane3D p){ //lp = -pl
 
 //Compute -plp
 inline MultiVector sandwhich(Plane3D p, Line3D l){
-  //return -1*MultiVector(p)*MultiVector(l)*MultiVector(p);
+  //return -1*Multivector(p)*MultiVVector(l)*MultiVVector(p)
   
   //Compute p*l
   float w = - p.x*l.mx - p.y*l.my - p.z*l.mz;
@@ -469,27 +462,6 @@ inline MultiVector sandwhich(Plane3D p, Line3D l){
   float zx = z*p.x - x*p.z + xyz*p.y;
   float yz = y*p.z - z*p.y + xyz*p.x;
   return MultiVector(0, 0, 0,0,0, -wx, -wy, -wz, -xy, -zx, -yz, 0, 0, 0 ,0, 0);
-}
-
-
-//Compute -plp
-inline Dir3D sandwhich(Plane3D p, Dir3D l){
-  // return MultiVector(p)*MultiVector(l)*MultiVector(p);
-
-  //Compute p*l
-  float wx =  -p.y*l.z + p.z*l.y;
-  float wy =   p.x*l.z - p.z*l.x;
-  float wz =  -p.x*l.y + p.y*l.x;
-  float wxyz = p.x*l.x + p.y*l.y + p.z*l.z;
-
-  //Compute (p*l)*p
-  // float _w =  wx*p.x + wy*p.y + wz*p.z; // Always zero!
-  float _wyx = -wx*p.y + wy*p.x - wxyz*p.z;
-  float _wxz =  + wx*p.z - wz*p.x - wxyz*p.y;
-  float _wzy = -wy*p.z + wz*p.y - wxyz*p.x;
-
-  // return MultiVector(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _wyx, _wxz, _wzy, 0, 0);
-  return Dir3D(_wzy, _wxz, _wyx);
 }
 
 // Vee/Join Operations
@@ -516,25 +488,6 @@ inline Line3D vee(Point3D p, Dir3D d){
   return Line3D(wx,wy,wz,yz,zx,xy); //swapped b/c vee is dual
 }
 
-inline float veeMagnitude(Point3D a, Point3D b, Point3D c){
-  //return MultiVector(a).vee(b).vee(c).magnitude();
-  //Vee to points a and b to make a line
-  float wx = b.x - a.x;
-  float wy = b.y - a.y;
-  float wz = b.z - a.z;
-  float xy = a.x*b.y - a.y*b.x;
-  float zx = a.z*b.x - a.x*b.z;
-  float yz = a.y*b.z - a.z*b.y;
-
-  //Vee line and point c to get a plane
-  float wyx = - wx*c.y + wy*c.x - xy;
-  float wxz = + wx*c.z - wz*c.x - zx;
-  float wzy = - wy*c.z + wz*c.y - yz;
-  // float xyz = + xy*c.z + zx*c.y + yz*c.x;
-
-  return sqrtf(wyx*wyx+wxz*wxz+wzy*wzy); //Return magnitude of dual as it's a vee operation
-}
-
 inline Plane3D vee(Point3D a, Point3D b, Point3D c){
   //return MultiVector(a).vee(b).vee(c);
   //Vee to points a and b to make a line
@@ -549,9 +502,9 @@ inline Plane3D vee(Point3D a, Point3D b, Point3D c){
   float wyx = - wx*c.y + wy*c.x - xy;
   float wxz = + wx*c.z - wz*c.x - zx;
   float wzy = - wy*c.z + wz*c.y - yz;
-  float xyz = + xy*c.z + zx*c.y + yz*c.x;
+  float xyz = + xy*c.z + zx*c.y + yz;
 
-  return Plane3D(wzy,wxz,wyx,xyz); //Return the dual as it's a vee operation
+  return Plane3D(wzy,wxz,wyx,xyz); //Return dual as it's a vee operation
 }
 
 inline Plane3D vee(Point3D a, Point3D b, HomogeneousPoint3D c){
@@ -623,7 +576,6 @@ inline float dot(Dir3D a, Dir3D b){
   //return MultiVector(a).dot(b);
   return a.x*b.x + a.y*b.y + a.z*b.z;
 }
-
 
 inline Plane3D dot(Point3D p, Line3D l){
   //return MultiVector(p).dot(l);

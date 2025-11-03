@@ -65,4 +65,4 @@ point_light: 50 50 50 10 5 -5
 ambient_light: .35 .35 .35
 background: .05 .05 .05
 
-max_depth: 10
+max_depth: 2

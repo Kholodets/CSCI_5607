@@ -1,3 +1,62 @@
+= CSCI 5607 Project 3B
+== Lexi MacLean
+
+Scroll down past the 3B section to find the 3A section, which has not been modified since last week except for putting in the correct targz.
+
+My ray tracer implements *all the basic features* listed for project 3B, as well as *parallelization* and *spot lights*.
+
+Here are a few sample renders of various scenes to demonstrate the functionality:
+
+With parallelization, it's able to render the dragon model in about a minute:
+
+    #html.elem("img", attrs: (src: "images/dragon.png", width: "600"))[]
+
+`foo.png` features a *spotlight* and my image seems to be identical to the reference:
+
+    #html.elem("img", attrs: (src: "images/foo.png", width: "600"))[]
+
+    \
+
+    #html.elem("img", attrs: (src: "images/plant.png", width: "600"))[]
+    \
+
+    #html.elem("img", attrs: (src: "images/ShadowTest.png", width: "500"))[]
+\
+
+my ray tracer supports normal interpolation for smooth surfaces:
+
+    #html.elem("img", attrs: (src: "images/arm.png", width: "600"))[]
+
+\
+
+My ray tracer now supports refraction, along with all of the other aspects of the lighting model as required for 3A: 
+#html.elem("img", attrs: (src: "images/outdoor.png", width: "600"))[]
+
+== Parallelization and Performance
+
+To enable parallel processing, I simply added the line
+```
+#pragma omp parallel for
+```
+to the main function of the ray tracer in the ray generation loop.
+This significantly speeds up the processing of these scenes using OpenMP.
+
+Setting `$ export OMP_NUM_THREADS=X` prior to each run allows me to check performance.
+
+To render `ShadowTest.txt`, 1 thread takes 5295ms, 2 threads take 3372ms, 8 take 1101ms.
+
+To render `dragon.txt`, 8 threads take 96 seconds, 16 threads take 68 seconds, and 24 threads take 60 seconds.
+
+It's interesting that we see pretty linear decrease with small numbers of threads, but quickly get into diminishing returns with large amounts.
+
+Note this is all on my 24-core CPU.
+
+== Download
+
+A `tar.gz` containing the project files FOR PROJECT 3B and a x86-64 linux executable can be found here: #html.elem("a", attrs:(href: "macle119_proj3.tar.gz"))[macle119_proj3.tar.gz]
+
+Additionally, the code may be perused at this sites parent repository: #html.elem("a", attrs:(href: "https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"))[https://github.com/Kholodets/CSCI_5607/tree/main/proj_3]
+
 = CSCI 5607 Project 3A
 == Lexi MacLean
 
@@ -108,7 +167,7 @@ Since, I'm turning this in a day late, I'm just shooting for full points.
 
 == Download
 
-A `tar.gz` containing the project files and a x86-64 linux executable can be found here: #html.elem("a", attrs:(href: "macle119_proj3.tar.gz"))[macle119_proj3.tar.gz]
+A `tar.gz` containing the project files FOR PROJECT 3A and a x86-64 linux executable can be found here: #html.elem("a", attrs:(href: "macle119_proj3a.tar.gz"))[macle119_proj3a.tar.gz]
 
 Additionally, the code may be perused at this sites parent repository: #html.elem("a", attrs:(href: "https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"))[https://github.com/Kholodets/CSCI_5607/tree/main/proj_3]
 

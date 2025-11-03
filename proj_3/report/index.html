@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
+    <h2>CSCI 5607 Project 3B</h2>
+    <h3>Lexi MacLean</h3>
+    <p>Scroll down past the 3B section to find the 3A section, which has not been modified since last week except for putting in the correct targz.</p>
+    <p>My ray tracer implements <strong>all the basic features</strong> listed for project 3B, as well as <strong>parallelization</strong> and <strong>spot lights</strong>.</p>
+    <p>Here are a few sample renders of various scenes to demonstrate the functionality:</p>
+    <p>With parallelization, it's able to render the dragon model in about a minute:</p>
+    <img src="images/dragon.png" width="600">
+    <p><code>foo.png</code> features a <strong>spotlight</strong> and my image seems to be identical to the reference:</p>
+    <img src="images/foo.png" width="600">
+    <p><br></p>
+    <img src="images/plant.png" width="600">
+    <p><br></p>
+    <img src="images/ShadowTest.png" width="500">
+    <p><br></p>
+    <p>my ray tracer supports normal interpolation for smooth surfaces:</p>
+    <img src="images/arm.png" width="600">
+    <p><br></p>
+    <p>My ray tracer now supports refraction, along with all of the other aspects of the lighting model as required for 3A:</p>
+    <img src="images/outdoor.png" width="600">
+    <h3>Parallelization and Performance</h3>
+    <p>To enable parallel processing, I simply added the line</p>
+    <pre>#pragma omp parallel for</pre>
+    <p>to the main function of the ray tracer in the ray generation loop. This significantly speeds up the processing of these scenes using OpenMP.</p>
+    <p>Setting <code>$ export OMP_NUM_THREADS=X</code> prior to each run allows me to check performance.</p>
+    <p>To render <code>ShadowTest.txt</code>, 1 thread takes 5295ms, 2 threads take 3372ms, 8 take 1101ms.</p>
+    <p>To render <code>dragon.txt</code>, 8 threads take 96 seconds, 16 threads take 68 seconds, and 24 threads take 60 seconds.</p>
+    <p>It's interesting that we see pretty linear decrease with small numbers of threads, but quickly get into diminishing returns with large amounts.</p>
+    <p>Note this is all on my 24-core CPU.</p>
+    <h3>Download</h3>
+    <p>A <code>tar.gz</code> containing the project files FOR PROJECT 3B and a x86-64 linux executable can be found here: <a href="macle119_proj3.tar.gz">macle119_proj3.tar.gz</a></p>
+    <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3">https://github.com/Kholodets/CSCI_5607/tree/main/proj_3</a></a></p>
     <h2>CSCI 5607 Project 3A</h2>
     <h3>Lexi MacLean</h3>
     <h3>Scene Setup</h3>
@@ -29,7 +60,7 @@
     <p>I didn't run into too much trouble during the development of it, some features required a bit of messing with PGA expressions to get working, but nothing too bad. The main issue with the raytracer right now is speed. It currently implements no acceleration structure, and takes quite a while to render. It also has no antialiasing, so the jaggies are pretty bad. Adding antialiasing would make it unacceptably slow, so an acceleration structure is high priority.</p>
     <p>By my count, I've implemented 11 of the 5-point features: <code>(cam placement, film res, aspect ratio), background colors, png output, spheres, ambient lights, point light sources, shadows, multiple light sources, basic sampling, color/specularity, and reflection</code>. Since, I'm turning this in a day late, I'm just shooting for full points.</p>
     <h3>Download</h3>
-    <p>A <code>tar.gz</code> containing the project files and a x86-64 linux executable can be found here: <a href="macle119_proj3.tar.gz">macle119_proj3.tar.gz</a></p>
+    <p>A <code>tar.gz</code> containing the project files FOR PROJECT 3A and a x86-64 linux executable can be found here: <a href="macle119_proj3a.tar.gz">macle119_proj3a.tar.gz</a></p>
     <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3">https://github.com/Kholodets/CSCI_5607/tree/main/proj_3</a></a></p>
   </body>
 </html>
