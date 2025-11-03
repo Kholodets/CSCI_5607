@@ -51,6 +51,22 @@ It's interesting that we see pretty linear decrease with small numbers of thread
 
 Note this is all on my 24-core CPU.
 
+== Development Comments
+
+This is certainly a bit rushed.
+There were a lot of cases developing this where I'd have to sit and think on it for a while, and feel dumb when I realized the straightforward fix.
+Having a little more time to implement everything would be pretty nice.
+
+The code is quite unorganized as-is, and I'll probably work on cleaning that up for my own sake.
+
+I wanted to implement a BVH, but I ran out of time and was able to render some of the scenes with lots of tris by brute force, so it turned out OK. 
+
+I'm shooting for full points (basic features + spot light + parallel = 85 + 5 + 10 = 100) on the 1-day late on the basis that I went out for halloween.
+
+Here's a pic of me and some friends at a house party, I'm doing the double peace signs:
+
+    #html.elem("img", attrs: (src: "images/halloween.jpg", width: "500"))[]
+
 == Download
 
 A `tar.gz` containing the project files FOR PROJECT 3B and a x86-64 linux executable can be found here: #html.elem("a", attrs:(href: "macle119_proj3.tar.gz"))[macle119_proj3.tar.gz]

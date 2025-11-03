@@ -33,6 +33,13 @@
     <p>To render <code>dragon.txt</code>, 8 threads take 96 seconds, 16 threads take 68 seconds, and 24 threads take 60 seconds.</p>
     <p>It's interesting that we see pretty linear decrease with small numbers of threads, but quickly get into diminishing returns with large amounts.</p>
     <p>Note this is all on my 24-core CPU.</p>
+    <h3>Development Comments</h3>
+    <p>This is certainly a bit rushed. There were a lot of cases developing this where I'd have to sit and think on it for a while, and feel dumb when I realized the straightforward fix. Having a little more time to implement everything would be pretty nice.</p>
+    <p>The code is quite unorganized as-is, and I'll probably work on cleaning that up for my own sake.</p>
+    <p>I wanted to implement a BVH, but I ran out of time and was able to render some of the scenes with lots of tris by brute force, so it turned out OK.</p>
+    <p>I'm shooting for full points (basic features + spot light + parallel = 85 + 5 + 10 = 100) on the 1-day late on the basis that I went out for halloween.</p>
+    <p>Here's a pic of me and some friends at a house party, I'm doing the double peace signs:</p>
+    <img src="images/halloween.jpg" width="500">
     <h3>Download</h3>
     <p>A <code>tar.gz</code> containing the project files FOR PROJECT 3B and a x86-64 linux executable can be found here: <a href="macle119_proj3.tar.gz">macle119_proj3.tar.gz</a></p>
     <p>Additionally, the code may be perused at this sites parent repository: <a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3"><a href="https://github.com/Kholodets/CSCI_5607/tree/main/proj_3">https://github.com/Kholodets/CSCI_5607/tree/main/proj_3</a></a></p>
